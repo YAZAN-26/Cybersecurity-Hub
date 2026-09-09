@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>منصة فحص الثغرات الأمنية المتقدمة</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #111827;
+            --border-color: #1f2937;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --success: #10b981;
+            --danger: #f43f5e;
+            --warning: #f59e0b;
+        }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 40px; display: flex; justify-content: center; }
+        .container { background: var(--card-bg); padding: 40px; border-radius: 16px; width: 100%; max-width: 800px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); border: 1px solid var(--border-color); }
+        h2 { margin-top: 0; color: #ffffff; font-size: 24px; text-align: center; margin-bottom: 25px; }
+        .form-group { display: flex; gap: 10px; margin-bottom: 25px; }
+        input[type="text"] { flex: 1; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: white; font-size: 15px; outline: none; transition: border-color 0.2s; }
+        input[type="text"]:focus { border-color: var(--accent); }
+        button { background: var(--accent); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 15px; transition: background 0.2s; }
+        button:hover { background: var(--accent-hover); }
+        
+        .results { margin-top: 30px; background: var(--bg-color); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); direction: ltr; text-align: left; }
+        .results h3 { color: var(--text-main); font-size: 16px; margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; direction: rtl; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; direction: rtl; }
+        .stat-card { background: #1f2937; padding: 12px; border-radius: 8px; font-size: 14px; text-align: center; }
+        .stat-card span { display: block; font-size: 18px; font-weight: bold; margin-top: 4px; }
+
+        .progress-container { background: #1f2937; border-radius: 8px; height: 10px; width: 100%; margin-top: 8px; overflow: hidden; }
+        .progress-bar { height: 100%; transition: width 0.5s ease; }
+        .bg-high { background: var(--success); }
+        .bg-mid { background: var(--warning); }
+        .bg-low { background: var(--danger); }
+
+        ul { list-style: none; padding: 0; margin: 0; }
+        li { padding: 10px 0; border-bottom: 1px dashed var(--border-color); display: flex; justify-content: space-between; align-items: center; font-family: monospace; font-size: 14px; }
+        li:last-child { border-bottom: none; }
+        .secure { color: var(--success); font-weight: bold; }
+        .danger { color: var(--danger); font-weight: bold; }
+        
+        .badge-high { background: rgba(244, 63, 94, 0.15); color: var(--danger); padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+        .badge-mid { background: rgba(245, 158, 11, 0.15); color: var(--warning); padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+        .badge-secure { background: rgba(16, 185, 129, 0.15); color: var(--success); padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+
+        .grid-section { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; direction: rtl; }
+        .sub-box { background: #1a2234; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); }
+        .sub-box h4 { color: var(--text-muted); font-size: 13px; margin-top: 0; margin-bottom: 8px; }
+        .sub-box ul { list-style: disc; padding-right: 15px; font-family: Tahoma; }
+        .sub-box li { font-family: Tahoma; display: list-item; border: none; padding: 2px 0; color: var(--text-muted); font-size: 12px; }
+
+        .history-box { margin-top: 25px; border-top: 1px solid var(--border-color); padding-top: 15px; text-align: right; direction: rtl; }
+        .history-box h4 { color: var(--text-muted); font-size: 14px; margin-bottom: 8px; }
+        .history-list { display: flex; flex-wrap: wrap; gap: 8px; }
+        .history-item { background: #1f2937; padding: 5px 10px; border-radius: 6px; font-size: 13px; color: var(--text-main); }
+        
+        .export-btn { display: inline-block; margin-top: 20px; background: var(--success); color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 600; text-align: center; }
+        .export-btn:hover { background: #059669; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Cybersecurity Enterprise Hub</h2>
+        <form method="POST">
+            <div class="form-group">
+                <input type="text" name="url" placeholder="أدخل الرابط (مثال: example.com)" value="{{ url }}" required>
+                <button type="submit">فحص عميق</button>
+            </div>
+        </form>
+
+        {% if result %}
+        <div class="results">
+            <h3>نتائج الفحص المؤسسي للرابط: {{ url }}</h3>
+            
+            <div class="stats-grid">
+                <div class="stat-card">نوع السيرفر <span style="color: var(--accent); font-size: 14px;">{{ server_info }}</span></div>
+                <div class="stat-card">مستوى الأمان 
+                    <span class="{% if security_score >= 70 %}secure{% elif security_score >= 40 %}warning{% else %}danger{% endif %}">
+                        {{ security_score }}%
+                    </span>
+                    <div class="progress-container">
+                        <div class="progress-bar {% if security_score >= 70 %}bg-high{% elif security_score >= 40 %}bg-mid{% else %}bg-low{% endif %}" style="width: {{ security_score }}%;"></div>
+                    </div>
+                </div>
+                <div class="stat-card">إجمالي المخاطر <span style="color: var(--danger);">{{ missing_count }} ثغرة مفقودة</span></div>
+            </div>
+
+            <ul>
+                {% for header, data in result.items() %}
+                    <li>
+                        <span>{{ header }}</span>
+                        <div>
+                            {% if data.status == "موجود" %}
+                                <span class="badge-secure">محمي (موجود)</span>
+                            {% else %}
+                                <span class="{% if data.severity == 'حرج' %}badge-high{% else %}badge-mid{% endif %}">
+                                    مفقود (خطورة: {{ data.severity }})
+                                </span>
+                            {% endif %}
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+
+            <div class="grid-section">
+                {% if sub_links %}
+                <div class="sub-box">
+                    <h4>الروابط الفرعية والتحقق منها:</h4>
+                    <ul>
+                        {% for link_info in sub_links[:4] %}
+                            <li>{{ link_info.url }} <b style="color: {% if link_info.secure %}var(--success){% else %}var(--danger){% endif %};">[{{ link_info.protocol }}]</b></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% if ports %}
+                <div class="sub-box">
+                    <h4>حالة المنافذ الحساسة:</h4>
+                    <ul>
+                        {% for port, state in ports.items() %}
+                            <li>منفذ {{ port }}: <strong style="color: {% if state == 'مفتوح' %}var(--success){% else %}var(--danger){% endif %};">{{ state }}</strong></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+
+            <div style="text-align: center;">
+                <a href="/export?url={{ url }}" class="export-btn">تصدير التقرير المؤسسي (TXT)</a>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if history %}
+        <div class="history-box">
+            <h4>سجل الفحوصات:</h4>
+            <div class="history-list">
+                {% for item in history %}
+                    <span class="history-item">{{ item }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
